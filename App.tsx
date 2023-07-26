@@ -8,6 +8,7 @@ import {
 import { Loading } from "@components/Loading";
 import { THEME } from "./src/theme";
 import { Routes } from "@routes/index";
+import { AuthContextProvider } from "src/contexts/AuthContext";
 
 export default function App() {
   const [fonstLoaded] = useFonts({ Roboto_400Regular, Roboto_700Bold });
@@ -18,7 +19,9 @@ export default function App() {
         backgroundColor="transparent"
         translucent
       />
-      {fonstLoaded ? <Routes /> : <Loading />}
+      <AuthContextProvider>
+        {fonstLoaded ? <Routes /> : <Loading />}
+      </AuthContextProvider>
     </NativeBaseProvider>
   );
 }
