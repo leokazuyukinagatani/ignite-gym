@@ -51,7 +51,7 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
   }
 
   function verifyUserAndToken(userData: UserDTO, token: string) {
-    if (!userData || token) {
+    if (!userData || !token) {
       throw new Error("User and token not found");
     }
     return
@@ -60,11 +60,10 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
   async function signIn(email: string, password: string) {
     try {
       const { data } = await api.post("/sessions", { email, password });
-
+      console.log('resposta da api',data);
       verifyUserAndToken(data.user, data.token);
       await storageUserAndTokenSave(data.user, data.token);
       userAndTokenUpdate(data.user, data.token);
-      return;
     } catch (error) {
       throw error;
     }
