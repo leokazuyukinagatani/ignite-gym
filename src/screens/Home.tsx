@@ -18,7 +18,7 @@ export function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [groups, setGroups] = useState<string[]>([]);
   const [exercises, setExercises] = useState<ExerciseDTO[]>([]);
-  const [groupSelected, setGroupSelected] = useState("costa");
+  const [groupSelected, setGroupSelected] = useState("antebraço");
 
   const toast = useToast();
 
@@ -64,9 +64,11 @@ export function Home() {
       setIsLoading(false);
     }
   }
+
   function handleOpenExerciseDetails(id: string) {
     navigation.navigate("exercise", { exerciseId: id });
   }
+  
 
   useEffect(() => {
     fetchGroups();

@@ -31,11 +31,12 @@ type RouteParamsProps = {
 
 export function Exercise() {
   const [isLoading, setIsLoading] = useState(true);
-  const toast = useToast();
-  const navigation = useNavigation<AppNavigatorRoutesProps>();
+  const [sendingRegister, setSendingRegister] = useState(false);
   const [exerciseDetails, setExerciseDetails] = useState<ExerciseDTO>(
     {} as ExerciseDTO
   );
+  const toast = useToast();
+  const navigation = useNavigation<AppNavigatorRoutesProps>();
 
   const route = useRoute();
 
@@ -66,9 +67,41 @@ export function Exercise() {
     }
   }
 
+  async function handleExerciseHistoryRegister() {
+    try {
+      setSendingRegister(true);
+
+      await api.post("/history", {
+        exercise_id: exerciseId,
+      });
+
+      toast.show({
+        title: "Parabéns! Exercício registrado no seu histórico.",
+        placement: "top",
+        bgColor: "green.700",
+      });
+
+      navigation.navigate("history");
+      
+    } catch (error) {
+      const isAppError = error instanceof AppError;
+      const title = isAppError
+        ? error.message
+        : "Não foi possível registrar o exercício.";
+
+      toast.show({
+        title,
+        placement: "top",
+        bgColor: "red.500",
+      });
+    } finally {
+      setSendingRegister(false);
+    }
+  }
+
   useEffect(() => {
     fetchExerciseDetails(exerciseId);
-  }, []);
+  }, [exerciseId]);
 
   return (
     <VStack flex={1}>
@@ -103,17 +136,19 @@ export function Exercise() {
       ) : (
         <ScrollView>
           <VStack p={8}>
-            <Image
-              w="full"
-              h={80}
-              source={{
-                uri: `${api.defaults.baseURL}/exercise/demo/${exerciseDetails.demo}`,
-              }}
-              alt={exerciseDetails.name}
-              mb={3}
-              resizeMode="cover"
-              rounded="lg"
-            />
+            <Box rounded="lg" mb={3} overflow="hidden">
+              <Image
+                w="full"
+                h={80}
+                source={{
+                  uri: `${api.defaults.baseURL}/exercise/demo/${exerciseDetails.demo}`,
+                }}
+                alt={exerciseDetails.name}
+                resizeMode="cover"
+                rounded="lg"
+              />
+            </Box>
+
             <Box bg="gray.600" rounded="md" pb={4} px={4}>
               <HStack
                 alignItems="center"
@@ -135,7 +170,11 @@ export function Exercise() {
                 </HStack>
               </HStack>
             </Box>
-            <Button title="Marcar como realizado" />
+            <Button
+              title="Marcar como realizado"
+              isLoading={sendingRegister}
+              onPress={handleExerciseHistoryRegister}
+            />
           </VStack>
         </ScrollView>
       )}
