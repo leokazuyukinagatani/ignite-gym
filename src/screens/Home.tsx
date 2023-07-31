@@ -1,32 +1,87 @@
-import { useState } from "react";
-import { useNavigation } from "@react-navigation/native";
+import { useCallback, useEffect, useState } from "react";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 
-import { FlatList, HStack, Heading, Text, VStack } from "native-base";
+import { FlatList, HStack, Heading, Text, useToast, VStack } from "native-base";
 
 import { Group } from "@components/Group";
 import { HomeHeader } from "@components/HomeHeader";
+import { ExerciseDTO } from "@dtos/ExerciseDTO";
 import { ExerciseCard } from "@components/ExerciseCard";
 
 import { AppNavigatorRoutesProps } from "@routes/app.routes";
 
+import { api } from "@services/api";
+import { AppError } from "@utils/AppError";
+import { Loading } from "@components/Loading";
+
 export function Home() {
-  const [groups, setGroups] = useState(["costas", "ombro", "perna", "triceps"]);
-  const [exercises, setExercises] = useState([
-    "Costas",
-    "Ombro",
-    "Perna",
-    "Triceps",
-  ]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [groups, setGroups] = useState<string[]>([]);
+  const [exercises, setExercises] = useState<ExerciseDTO[]>([]);
   const [groupSelected, setGroupSelected] = useState("costa");
+
+  const toast = useToast();
 
   const navigation = useNavigation<AppNavigatorRoutesProps>();
 
-  function handleOpenExerciseDetails() {
-    navigation.navigate("exercise");
+  async function fetchGroups() {
+    try {
+      const response = await api.get("/groups");
+
+      setGroups(response.data);
+    } catch (error) {
+      const isAppError = error instanceof AppError;
+      const title = isAppError
+        ? error.message
+        : "Não foi possível carregar os grupos musculares.";
+
+      toast.show({
+        title: title,
+        placement: "top",
+        bgColor: "red.500",
+      });
+    }
   }
+
+  async function fetchExercisesByGroup() {
+    try {
+      setIsLoading(true);
+      const response = await api.get(`/exercises/bygroup/${groupSelected}`);
+      setExercises(response.data);
+      console.log(response.data);
+    } catch (error) {
+      const isAppError = error instanceof AppError;
+      const title = isAppError
+        ? error.message
+        : "Não foi possível carregar os exercícios.";
+
+      toast.show({
+        title: title,
+        placement: "top",
+        bgColor: "red.500",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }
+  function handleOpenExerciseDetails(id: string) {
+    navigation.navigate("exercise", { exerciseId: id });
+  }
+
+  useEffect(() => {
+    fetchGroups();
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchExercisesByGroup();
+    }, [groupSelected])
+  );
+
   return (
     <VStack flex={1}>
       <HomeHeader />
+
       <FlatList
         data={groups}
         keyExtractor={(item) => item}
@@ -45,18 +100,30 @@ export function Home() {
         my={10}
         maxH={10}
       />
-      <VStack flex={1} px={8}>
-        <HStack justifyContent="space-between" mb={5}>
-          <Heading color="gray.200" fontSize="md" fontFamily="heading">
-            Exercicios
-          </Heading>
-          <Text color="gray.200" fontSize="sm">
-            {exercises.length}
-          </Text>
-        </HStack>
-        <ExerciseCard />
-        <ExerciseCard />
-      </VStack>
+      {isLoading ? (
+        <Loading />
+      ) : (
+        <VStack flex={1} px={8}>
+          <HStack justifyContent="space-between" mb={5}>
+            <Heading color="gray.200" fontSize="md" fontFamily="heading">
+              Exercicios
+            </Heading>
+            <Text color="gray.200" fontSize="sm">
+              {exercises.length}
+            </Text>
+          </HStack>
+          <FlatList
+            data={exercises}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <ExerciseCard
+                exercise={item}
+                onPress={() => handleOpenExerciseDetails(item.id)}
+              />
+            )}
+          />
+        </VStack>
+      )}
     </VStack>
   );
 }

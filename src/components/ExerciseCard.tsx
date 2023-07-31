@@ -1,10 +1,15 @@
 import { HStack, Heading, Icon, Image, Text, VStack } from "native-base";
 import { TouchableOpacity, TouchableOpacityProps } from "react-native";
 import { Entypo } from "@expo/vector-icons";
+import { ExerciseDTO } from "@dtos/ExerciseDTO";
 
-type ExerciseCardProps = TouchableOpacityProps & {};
+import { api } from "@services/api";
 
-export function ExerciseCard({ ...rest }: ExerciseCardProps) {
+type ExerciseCardProps = TouchableOpacityProps & {
+  exercise: ExerciseDTO;
+};
+
+export function ExerciseCard({ exercise, ...rest }: ExerciseCardProps) {
   return (
     <TouchableOpacity {...rest}>
       <HStack
@@ -17,9 +22,9 @@ export function ExerciseCard({ ...rest }: ExerciseCardProps) {
       >
         <Image
           source={{
-            uri: "https://th.bing.com/th/id/OIP.CzWMagHlTeJeAmzknb7KvgHaE8?w=228&h=180&c=7&r=0&o=5&pid=1.7",
+            uri: `${api.defaults.baseURL}/exercise/thumb/${exercise.thumb}`,
           }}
-          alt="Image do exercicio"
+          alt={`Image do exercicio ${exercise.name}`}
           w={16}
           h={16}
           rounded="md"
@@ -27,11 +32,11 @@ export function ExerciseCard({ ...rest }: ExerciseCardProps) {
           resizeMode="cover"
         />
         <VStack flex={1}>
-          <Heading fontSize="lg" color="white" fontFamily='heading'>
-            Remada unilateral
+          <Heading fontSize="lg" color="white" fontFamily="heading">
+            {exercise.name}
           </Heading>
           <Text fontSize="sm" color="gray.200" mt={1} numberOfLines={2}>
-            3 séries x 12 repetições
+            {exercise.series} séries x {exercise.repetitions} repetições
           </Text>
         </VStack>
         <Icon as={Entypo} name="chevron-thin-right" color="gray.300" />
