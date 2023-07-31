@@ -15,11 +15,11 @@ export type AuthNavigatorRoutesProps = NativeStackNavigationProp<AuthRoutes>;
 
 const Stack = createNativeStackNavigator();
 
-function AuthRoutes() {
+export function AuthRoutes() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="SignIn" component={SignIn} />
-      <Stack.Screen name="SignUp" component={SignUp} />
+      <Stack.Screen name="signIn" component={SignIn} />
+      <Stack.Screen name="signUp" component={SignUp} />
     </Stack.Navigator>
   );
 }
